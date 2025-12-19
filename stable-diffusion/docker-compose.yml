@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  stable-diffusion:
+    image: ghcr.io/AbdBarho/stable-diffusion-webui:latest-cuda
+    container_name: stable-diffusion
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    volumes:
+      # Models directory (shared with other LLM engines)
+      - ../models/stable-diffusion:/data/models/Stable-diffusion
+      - ../models/stable-diffusion/lora:/data/models/Lora
+      - ../models/stable-diffusion/vae:/data/models/VAE
+      - ../models/stable-diffusion/embeddings:/data/models/embeddings
+      - ../models/stable-diffusion/controlnet:/data/models/ControlNet
+
+      # Generated images and outputs
+      - ./outputs:/output
+
+      # Extensions and configuration
+      - ./config:/data/config
+      - ./extensions:/data/extensions
+    environment:
+      # GPU acceleration
+      - NVIDIA_VISIBLE_DEVICES=all
+
+      # CLI arguments for AUTOMATIC1111
+      - CLI_ARGS=--listen --api --xformers --enable-insecure-extension-access --no-half-vae --opt-sdp-attention
+
+      # For very large batches or SDXL, you can add:
+      # - CLI_ARGS=--listen --api --xformers --enable-insecure-extension-access --no-half-vae --opt-sdp-attention --medvram
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - llm-network
+
+networks:
+  llm-network:
+    external: true
+    name: llm_default  # Adjust if your LLM network has different name
+
+# Stable Diffusion WebUI - AUTOMATIC1111
+#
+# Access web UI: http://localhost:7860
+# API documentation: http://localhost:7860/docs
+#
+# Quick Start:
+# 1. docker-compose up -d
+# 2. Wait for model download (first start: ~5-10 min)
+# 3. Open http://localhost:7860
+# 4. Enter prompt and click Generate!
+#
+# Features Enabled:
+# - --listen: Accept external connections
+# - --api: Enable REST API
+# - --xformers: Memory efficient attention (faster, less VRAM)
+# - --enable-insecure-extension-access: Allow extension installation
+# - --no-half-vae: Better VAE quality
+# - --opt-sdp-attention: Optimized attention for RTX GPUs
+#
+# Model Storage:
+# - Checkpoints: /workspace/llm/models/stable-diffusion/
+# - LoRA: /workspace/llm/models/stable-diffusion/lora/
+# - VAE: /workspace/llm/models/stable-diffusion/vae/
+# - Embeddings: /workspace/llm/models/stable-diffusion/embeddings/
+# - ControlNet: /workspace/llm/models/stable-diffusion/controlnet/
+#
+# Outputs:
+# - Generated images: /workspace/llm/stable-diffusion/outputs/
+#
+# Download Models:
+# Place .safetensors files in /workspace/llm/models/stable-diffusion/
+# Recommended sources:
+# - Civitai: https://civitai.com/
+# - HuggingFace: https://huggingface.co/models?other=stable-diffusion
+#
+# Popular Models for Beginners:
+# - Realistic Vision v5 (photorealistic)
+# - DreamShaper 8 (versatile)
+# - SDXL Base (best quality, slower)
+#
+# Performance on RTX 4090:
+# - SD 1.5 @ 512x512: ~2 seconds
+# - SDXL @ 1024x1024: ~6 seconds
+#
+# If Out of VRAM:
+# Add --medvram to CLI_ARGS:
+# - CLI_ARGS=--listen --api --xformers --medvram
+#
+# Troubleshooting:
+# - Slow start: First launch downloads default model (~4GB)
+# - GPU not detected: Check nvidia-smi and deploy.resources config
+# - API not working: Ensure --api flag is in CLI_ARGS
+# - Extension install fails: Check --enable-insecure-extension-access flag
+#
+# Integration:
+# - Use with n8n for workflow automation
+# - Connect to LocalAI for unified API
+# - Call from LLM workflows for image generation
+#
+# Default model on first start:
+# - Downloads SD 1.5 from HuggingFace automatically
+# - You can replace with any .safetensors model after

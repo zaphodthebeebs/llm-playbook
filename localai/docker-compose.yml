@@ -26,14 +26,56 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    networks:
+      - localai-network
 
-# LocalAI can download models automatically
-# Or place GGUF models in ./models/
+  # Open WebUI - ChatGPT-like interface for LocalAI
+  # Enabled by default - comment out to disable
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: localai-webui
+    restart: unless-stopped
+    ports:
+      - "3002:8080"
+    volumes:
+      - ./open-webui:/app/backend/data
+    environment:
+      - OPENAI_API_BASE_URL=http://localai:8080/v1
+      - OPENAI_API_KEY=dummy
+      - ENABLE_OLLAMA_API=false
+      # LocalAI supports image generation
+      - ENABLE_IMAGE_GENERATION=true
+      - IMAGE_GENERATION_ENGINE=openai
+      - IMAGE_GENERATION_MODEL=stablediffusion
+    depends_on:
+      - localai
+    networks:
+      - localai-network
+
+networks:
+  localai-network:
+    driver: bridge
+
+# LocalAI - OpenAI API Drop-in Replacement
 #
-# Example model download (inside container):
-# curl http://localhost:8080/models/apply \
-#   -H "Content-Type: application/json" \
-#   -d '{"id": "llama-3.1-8b-instruct"}'
+# API: http://localhost:8082/v1 (OpenAI-compatible)
+# Web UI: http://localhost:3002 (Open WebUI - ChatGPT-like interface)
 #
-# Or manually place GGUF files in ./models/
-# Create a YAML config: models/model-name.yaml
+# Quick Start:
+# 1. docker-compose up -d
+# 2. Access Web UI at http://localhost:3002
+# 3. Install models via gallery or place GGUF files in ./models/
+#
+# LocalAI can download models automatically:
+# - Via Gallery: curl http://localhost:8082/models/available
+# - Install: curl http://localhost:8082/models/apply -H "Content-Type: application/json" -d '{"id": "llama-3.1-8b-instruct"}'
+#
+# Or manually place GGUF models in ./models/:
+# - Place .gguf file in ./models/
+# - Create YAML config: ./models/model-name.yaml
+#
+# Multi-modal features (via API or Web UI):
+# - Text generation: /v1/chat/completions
+# - Image generation: /v1/images/generations
+# - Audio transcription: /v1/audio/transcriptions
+# - Embeddings: /v1/embeddings

@@ -2,7 +2,9 @@
 
 A comprehensive guide and setup repository for running large language models locally. Compare and deploy multiple LLM inference engines optimized for **i9-14900K, 128GB RAM, RTX 4090 (24GB VRAM)**.
 
-## 🚀 Available Engines
+## 🚀 Available Services
+
+### LLM Inference Engines
 
 | Engine | Port | Best For | Speed | Ease of Use | Documentation |
 |--------|------|----------|-------|-------------|---------------|
@@ -13,6 +15,13 @@ A comprehensive guide and setup repository for running large language models loc
 | [**LocalAI**](./localai/) | 8082 | OpenAI API Drop-in, Multi-modal | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./localai/README.md) |
 | [**Aphrodite Engine**](./aphrodite-engine/) | 8083 | Chat, Creative Writing | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | [📖 Read More](./aphrodite-engine/README.md) |
 | [**KoboldCpp**](./koboldcpp/) | 5001 | RPG, Story Writing, Web UI | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./koboldcpp/README.md) |
+
+### Supporting Services
+
+| Service | Port | Best For | Documentation |
+|---------|------|----------|---------------|
+| [**Stable Diffusion**](./stable-diffusion/) | 7860 | AI Image Generation | [📖 Read More](./stable-diffusion/README.md) |
+| [**n8n**](./n8n/) | 5678 | Workflow Automation, LLM Orchestration | [📖 Read More](./n8n/README.md) |
 
 ## 📚 Quick Navigation
 
@@ -35,7 +44,11 @@ A comprehensive guide and setup repository for running large language models loc
 - [**Aphrodite Engine**](./aphrodite-engine/) - Advanced sampling for creativity
 
 **🎨 Multi-Modal (Text + Images + Audio)?**
-- [**LocalAI**](./localai/) - Only option with image generation & audio
+- [**LocalAI**](./localai/) - Text, image, audio generation in one API
+- [**Stable Diffusion**](./stable-diffusion/) - Dedicated AI image generation
+
+**🔄 Workflow Automation?**
+- [**n8n**](./n8n/) - Build LLM workflows, connect services, automate tasks
 
 **⚙️ Maximum Control & Flexibility?**
 - [**llama.cpp**](./llama-cpp/) - Fine-grained control over everything
@@ -86,8 +99,20 @@ llm/
 │   ├── USAGE.md                       # Usage examples & API
 │   └── docker-compose.yml             # Docker setup
 │
-└── koboldcpp/                         # Interactive story writing
-    ├── README.md                      # What is KoboldCpp?
+├── koboldcpp/                         # Interactive story writing
+│   ├── README.md                      # What is KoboldCpp?
+│   ├── INSTALL.md                     # Installation guide
+│   ├── USAGE.md                       # Usage examples & API
+│   └── docker-compose.yml             # Docker setup
+│
+├── stable-diffusion/                  # AI image generation
+│   ├── README.md                      # What is Stable Diffusion?
+│   ├── INSTALL.md                     # Installation guide
+│   ├── USAGE.md                       # Usage examples & API
+│   └── docker-compose.yml             # Docker setup
+│
+└── n8n/                               # Workflow automation
+    ├── README.md                      # What is n8n?
     ├── INSTALL.md                     # Installation guide
     ├── USAGE.md                       # Usage examples & API
     └── docker-compose.yml             # Docker setup
@@ -178,15 +203,20 @@ docker ps
 
 ### Port Reference
 
-| Port | Engine | API Type |
-|------|--------|----------|
-| 11434 | Ollama | OpenAI + Native |
-| 8000 | vLLM | OpenAI Compatible |
-| 8080 | Text Generation Inference | Custom + OpenAI |
-| 8081 | llama.cpp | OpenAI Compatible |
-| 8082 | LocalAI | OpenAI Compatible |
-| 8083 | Aphrodite Engine | OpenAI Compatible |
+| Port | Service | Type |
+|------|---------|------|
+| 11434 | Ollama | OpenAI + Native API |
+| 8000 | vLLM | OpenAI Compatible API |
+| 8080 | Text Generation Inference | Custom + OpenAI API |
+| 8081 | llama.cpp | OpenAI Compatible API |
+| 8082 | LocalAI | OpenAI Compatible API |
+| 8083 | Aphrodite Engine | OpenAI Compatible API |
 | 5001 | KoboldCpp | Web UI + OpenAI API |
+| 7860 | Stable Diffusion | Web UI + REST API |
+| 5678 | n8n | Web UI + REST API |
+| **3000** | **Open WebUI (Ollama)** | **ChatGPT-like Interface** |
+| **3001** | **Open WebUI (vLLM)** | **ChatGPT-like Interface** |
+| **3002** | **Open WebUI (LocalAI)** | **ChatGPT-like Interface** |
 
 ## 📊 Performance Comparison
 
@@ -271,11 +301,19 @@ curl http://localhost:8083/v1/models
 
 # KoboldCpp
 curl http://localhost:5001/api/v1/model
+
+# Stable Diffusion
+curl http://localhost:7860/sdapi/v1/sd-models
+
+# n8n
+curl http://localhost:5678
 ```
 
 ## 📖 Documentation Links
 
 ### Installation Guides
+
+**LLM Engines:**
 - [Ollama Installation](./ollama/INSTALL.md)
 - [vLLM Installation](./vllm/INSTALL.md)
 - [Text Generation Inference Installation](./text-generation-inference/INSTALL.md)
@@ -284,7 +322,13 @@ curl http://localhost:5001/api/v1/model
 - [Aphrodite Engine Installation](./aphrodite-engine/INSTALL.md)
 - [KoboldCpp Installation](./koboldcpp/INSTALL.md)
 
+**Supporting Services:**
+- [Stable Diffusion Installation](./stable-diffusion/INSTALL.md)
+- [n8n Installation](./n8n/INSTALL.md)
+
 ### Usage Guides
+
+**LLM Engines:**
 - [Ollama Usage & API](./ollama/USAGE.md)
 - [vLLM Usage & API](./vllm/USAGE.md)
 - [Text Generation Inference Usage & API](./text-generation-inference/USAGE.md)
@@ -292,6 +336,10 @@ curl http://localhost:5001/api/v1/model
 - [LocalAI Usage & API](./localai/USAGE.md)
 - [Aphrodite Engine Usage & API](./aphrodite-engine/USAGE.md)
 - [KoboldCpp Usage & API](./koboldcpp/USAGE.md)
+
+**Supporting Services:**
+- [Stable Diffusion Usage & API](./stable-diffusion/USAGE.md)
+- [n8n Usage & Workflows](./n8n/USAGE.md)
 
 ## 🎓 Learning Path
 

@@ -32,8 +32,62 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    networks:
+      - ollama-network
     # Uncomment to run a model automatically on startup
     # command: serve
+
+  # Optional: Stable Diffusion for image generation alongside Ollama
+  # Uncomment the section below to enable
+  # stable-diffusion:
+  #   image: ghcr.io/AbdBarho/stable-diffusion-webui:latest-cuda
+  #   container_name: ollama-stable-diffusion
+  #   restart: unless-stopped
+  #   ports:
+  #     - "7860:7860"
+  #   volumes:
+  #     - ../models/stable-diffusion:/data/models/Stable-diffusion
+  #     - ../models/stable-diffusion/lora:/data/models/Lora
+  #     - ../models/stable-diffusion/vae:/data/models/VAE
+  #     - ./sd-outputs:/output
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #     - CLI_ARGS=--listen --api --xformers --enable-insecure-extension-access --no-half-vae
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [gpu]
+  #   networks:
+  #     - ollama-network
+
+  # Open WebUI - ChatGPT-like interface for Ollama
+  # Recommended: Provides a great user experience!
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: ollama-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - ./open-webui:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - ENABLE_OLLAMA_API=true
+      # Uncomment if you enabled stable-diffusion above
+      # - ENABLE_IMAGE_GENERATION=true
+      # - IMAGE_GENERATION_ENGINE=automatic1111
+      # - AUTOMATIC1111_BASE_URL=http://stable-diffusion:7860
+    depends_on:
+      - ollama
+    networks:
+      - ollama-network
+
+networks:
+  ollama-network:
+    driver: bridge
 
 # Ollama - Easiest Local LLM Platform
 #
@@ -71,3 +125,29 @@ services:
 #
 # Models stored in: ./models/
 # Shared models with other engines: ../models/
+#
+# =====================================================================
+# OPTIONAL SERVICES (Uncomment to enable)
+# =====================================================================
+#
+# Stable Diffusion WebUI:
+# - Adds AI image generation alongside Ollama
+# - Access at http://localhost:7860
+# - Shared GPU with Ollama (RTX 4090 can handle both)
+#
+# Open WebUI:
+# - ChatGPT-like interface for Ollama
+# - Access at http://localhost:3000
+# - ENABLED BY DEFAULT (comment out to disable)
+# - Supports text chat + image generation (if SD enabled)
+#
+# Stable Diffusion:
+# - Uncomment the stable-diffusion service above to enable
+# - Then uncomment the IMAGE_GENERATION env vars in open-webui
+# - Access SD directly at http://localhost:7860
+#
+# Combined Setup (Ollama + Stable Diffusion + Web UI):
+# - Text generation via Ollama
+# - Image generation via Stable Diffusion
+# - Unified interface via Open WebUI
+# - All running on single RTX 4090

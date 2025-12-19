@@ -1,0 +1,62 @@
+# Model files (can be very large)
+models/
+*/models/
+*.gguf
+*.safetensors
+*.bin
+*.pth
+*.ckpt
+
+# Docker volumes and runtime data
+*/stories/
+*/images/
+ollama/models/
+stable-diffusion/outputs/
+stable-diffusion/config/
+stable-diffusion/extensions/
+n8n/data/
+n8n/workflows/
+n8n/backups/
+
+# HuggingFace cache
+.cache/
+*/cache/
+
+# Environment files (if you add any)
+.env
+*.env
+.env.*
+**/open-webui/
+*/open-webui/
+**/pg_data/
+**/data/postgres/
+**/.n8n/
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+env/
+
+# If you add actual tokens/keys later
+*secret*
+*credential*
+.token
