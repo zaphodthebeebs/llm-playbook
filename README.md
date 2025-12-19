@@ -6,30 +6,30 @@ A comprehensive guide and setup repository for running large language models loc
 
 ### LLM Inference Engines
 
-| Engine | Port | Best For | Speed | Ease of Use | Documentation |
-|--------|------|----------|-------|-------------|---------------|
-| [**Ollama**](./ollama/) | 11434 | Getting Started, Easy Setup | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./ollama/README.md) |
-| [**vLLM**](./vllm/) | 8000 | Production, High Throughput | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | [📖 Read More](./vllm/README.md) |
-| [**Text Generation Inference**](./text-generation-inference/) | 8080 | HuggingFace Models | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | [📖 Read More](./text-generation-inference/README.md) |
-| [**llama.cpp**](./llama-cpp/) | 8081 | GGUF Models, Flexibility | ⚡⚡⚡ | ⭐⭐⭐⭐ | [📖 Read More](./llama-cpp/README.md) |
-| [**LocalAI**](./localai/) | 8082 | OpenAI API Drop-in, Multi-modal | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./localai/README.md) |
-| [**Aphrodite Engine**](./aphrodite-engine/) | 8083 | Chat, Creative Writing | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | [📖 Read More](./aphrodite-engine/README.md) |
-| [**KoboldCpp**](./koboldcpp/) | 5001 | RPG, Story Writing, Web UI | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./koboldcpp/README.md) |
+| Engine | API Port | Web UI | Best For | Speed | Ease of Use | Documentation |
+|--------|----------|--------|----------|-------|-------------|---------------|
+| [**Ollama**](./ollama/) | 11434 | ✅ 3000 | Getting Started, Easy Setup | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./ollama/README.md) |
+| [**vLLM**](./vllm/) | 8000 | ✅ 3001 | Production, High Throughput | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | [📖 Read More](./vllm/README.md) |
+| [**Text Generation Inference**](./text-generation-inference/) | 8080 | ❌ API Only | HuggingFace Models | ⚡⚡⚡⚡ | ⭐⭐⭐⭐ | [📖 Read More](./text-generation-inference/README.md) |
+| [**llama.cpp**](./llama-cpp/) | 8081 | ❌ API Only | GGUF Models, Flexibility | ⚡⚡⚡ | ⭐⭐⭐⭐ | [📖 Read More](./llama-cpp/README.md) |
+| [**LocalAI**](./localai/) | 8082 | ✅ 3002 | OpenAI API Drop-in, Multi-modal | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./localai/README.md) |
+| [**Aphrodite Engine**](./aphrodite-engine/) | 8083 | ❌ API Only | Chat, Creative Writing | ⚡⚡⚡⚡⚡ | ⭐⭐⭐ | [📖 Read More](./aphrodite-engine/README.md) |
+| [**KoboldCpp**](./koboldcpp/) | 5001 | ✅ 5001 | RPG, Story Writing | ⚡⚡⚡ | ⭐⭐⭐⭐⭐ | [📖 Read More](./koboldcpp/README.md) |
 
 ### Supporting Services
 
-| Service | Port | Best For | Documentation |
-|---------|------|----------|---------------|
-| [**Stable Diffusion**](./stable-diffusion/) | 7860 | AI Image Generation | [📖 Read More](./stable-diffusion/README.md) |
-| [**n8n**](./n8n/) | 5678 | Workflow Automation, LLM Orchestration | [📖 Read More](./n8n/README.md) |
+| Service | Port | Web UI | Best For | Documentation |
+|---------|------|--------|----------|---------------|
+| [**Stable Diffusion**](./stable-diffusion/) | 7860 | ✅ 7860 | AI Image Generation | [📖 Read More](./stable-diffusion/README.md) |
+| [**n8n**](./n8n/) | 5678 | ✅ 5678 | Workflow Automation, LLM Orchestration | [📖 Read More](./n8n/README.md) |
 
 ## 📚 Quick Navigation
 
 ### By Use Case
 
 **🎯 Just Getting Started?**
-- Start with [**Ollama**](./ollama/) - Easiest setup, one command to run
-- Or try [**LocalAI**](./localai/) - OpenAI-compatible, multi-modal support
+- Start with [**Ollama**](./ollama/) - Easiest setup, includes ChatGPT-like Web UI
+- Or try [**LocalAI**](./localai/) - OpenAI-compatible, multi-modal, includes Web UI
 
 **🚄 Need Maximum Speed?**
 - Use [**vLLM**](./vllm/) - Fastest throughput with PagedAttention
@@ -43,12 +43,18 @@ A comprehensive guide and setup repository for running large language models loc
 - [**KoboldCpp**](./koboldcpp/) - Interactive web UI, memory/lore books
 - [**Aphrodite Engine**](./aphrodite-engine/) - Advanced sampling for creativity
 
+**🖥️ Want a Web Interface?**
+- [**Ollama**](./ollama/) with Open WebUI - ChatGPT-like interface (port 3000)
+- [**vLLM**](./vllm/) with Open WebUI - High-performance + UI (port 3001)
+- [**LocalAI**](./localai/) with Open WebUI - Multi-modal + UI (port 3002)
+- [**KoboldCpp**](./koboldcpp/) - Built-in story writing UI (port 5001)
+
 **🎨 Multi-Modal (Text + Images + Audio)?**
 - [**LocalAI**](./localai/) - Text, image, audio generation in one API
-- [**Stable Diffusion**](./stable-diffusion/) - Dedicated AI image generation
+- [**Stable Diffusion**](./stable-diffusion/) - Dedicated AI image generation with Web UI
 
 **🔄 Workflow Automation?**
-- [**n8n**](./n8n/) - Build LLM workflows, connect services, automate tasks
+- [**n8n**](./n8n/) - Visual workflow builder, connect LLMs to 280+ services
 
 **⚙️ Maximum Control & Flexibility?**
 - [**llama.cpp**](./llama-cpp/) - Fine-grained control over everything
@@ -120,27 +126,56 @@ llm/
 
 ## 🎯 Quick Start
 
-### 1. Choose Your Engine
+### Option 1: With Web Interface (Easiest!)
 
-Read the comparison table above and pick an engine based on your use case.
-
-### 2. Install & Run
-
-Each engine has detailed documentation:
-
+**Ollama + Open WebUI** (Recommended for beginners):
 ```bash
-# Example: Start Ollama
 cd /workspace/llm/ollama
 docker-compose up -d
 
-# Pull a model
+# Wait for startup, then:
+# 1. Open http://localhost:3000 (Web UI)
+# 2. Pull a model in the UI or via CLI:
 docker exec -it ollama ollama pull llama3.1
-
-# Test it
-docker exec -it ollama ollama run llama3.1
+# 3. Start chatting in the browser!
 ```
 
-### 3. Access the API
+**vLLM + Open WebUI** (For high performance):
+```bash
+cd /workspace/llm/vllm
+docker-compose up -d
+# Access: http://localhost:3001
+```
+
+**LocalAI + Open WebUI** (For multi-modal):
+```bash
+cd /workspace/llm/localai
+docker-compose up -d
+# Access: http://localhost:3002
+```
+
+### Option 2: API Only
+
+```bash
+# Example: Start any engine
+cd /workspace/llm/vllm
+docker-compose up -d
+
+# Use OpenAI SDK
+python -c "from openai import OpenAI; ..."
+```
+
+### Web UI Overview
+
+All services with Open WebUI provide:
+- ✅ ChatGPT-like interface
+- ✅ No coding required
+- ✅ Model selection dropdown
+- ✅ Chat history
+- ✅ File uploads (where supported)
+- ✅ Image generation (Ollama/LocalAI with Stable Diffusion)
+
+### Access the API
 
 All engines provide OpenAI-compatible APIs:
 
@@ -240,7 +275,7 @@ docker ps
 | **Easy Setup** | ✅✅✅ | ⚠️ | ⚠️ | ⚠️ | ✅✅ | ⚠️ | ✅✅ |
 | **Model Library** | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | **Max Speed** | ⚠️ | ✅✅✅ | ✅✅ | ✅ | ⚠️ | ✅✅✅ | ⚠️ |
-| **Web UI** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅✅✅ |
+| **Web UI** | ✅ Open WebUI | ✅ Open WebUI | ❌ | ❌ | ✅ Open WebUI | ❌ | ✅ Built-in |
 | **Images** | ⚠️ Vision | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | **Audio** | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | **Embeddings** | ✅ | ❌ | ✅ | ❌ | ✅ | ❌ | ❌ |
