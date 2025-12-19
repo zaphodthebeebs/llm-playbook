@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: vllm
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ../models:/models
+    environment:
+      - HF_HOME=/root/.cache/huggingface
+      # Set your HuggingFace token for gated models
+      # - HF_TOKEN=hf_xxxxxxxxxxxxx
+    command:
+      - --model
+      - meta-llama/Llama-3.1-70B-Instruct
+      - --dtype
+      - auto
+      - --max-model-len
+      - "8192"
+      - --gpu-memory-utilization
+      - "0.9"
+      - --port
+      - "8000"
+      - --host
+      - "0.0.0.0"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: '4gb'
+
+# To use a different model, change the --model parameter:
+# Recommended models:
+# - meta-llama/Llama-3.1-70B-Instruct (70B, needs AWQ/GPTQ)
+# - meta-llama/Llama-3.1-13B-Instruct (13B, full FP16)
+# - mistralai/Mistral-7B-Instruct-v0.3 (7B, fast)
+# - Qwen/Qwen2.5-72B-Instruct (72B, excellent)
+# - TheBloke/Llama-2-70B-Chat-AWQ (70B quantized, fits in 24GB)

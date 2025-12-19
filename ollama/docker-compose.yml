@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./models:/root/.ollama
+      - ../models:/models  # Shared models directory
+    environment:
+      # Number of parallel requests (adjust for multi-user)
+      - OLLAMA_NUM_PARALLEL=4
+
+      # Max models to keep loaded (set to 1 for max performance)
+      - OLLAMA_MAX_LOADED_MODELS=2
+
+      # How long to keep models in memory (5m, 1h, -1 for always)
+      - OLLAMA_KEEP_ALIVE=5m
+
+      # Enable GPU
+      - NVIDIA_VISIBLE_DEVICES=all
+
+      # Debug mode (set to 1 for verbose logs)
+      # - OLLAMA_DEBUG=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    # Uncomment to run a model automatically on startup
+    # command: serve
+
+# Ollama - Easiest Local LLM Platform
+#
+# Access API: http://localhost:11434
+#
+# Quick Start:
+# 1. Start container: docker-compose up -d
+# 2. Pull a model: docker exec -it ollama ollama pull llama3.1
+# 3. Run interactively: docker exec -it ollama ollama run llama3.1
+# 4. Or use API (see USAGE.md)
+#
+# Popular Models:
+# - llama3.1 (8B, default)
+# - llama3.1:70b (70B, best quality for RTX 4090)
+# - mistral (7B, fast)
+# - codellama (7B-70B, coding)
+# - llama3.2-vision (11B, vision)
+# - qwen2.5:72b (72B, multilingual)
+#
+# Model Management:
+# - Pull: docker exec -it ollama ollama pull <model>
+# - List: docker exec -it ollama ollama list
+# - Remove: docker exec -it ollama ollama rm <model>
+# - Info: docker exec -it ollama ollama show <model>
+#
+# Performance Tuning:
+# - OLLAMA_NUM_PARALLEL: 1 (single user) to 8+ (multi-user)
+# - OLLAMA_MAX_LOADED_MODELS: 1 (max speed) to 3+ (convenience)
+# - OLLAMA_KEEP_ALIVE: -1 (always loaded) or 5m (auto-unload)
+#
+# For RTX 4090 (24GB):
+# - Can run 70B Q4 models
+# - Can run multiple 7-13B models simultaneously
+# - Automatically offloads to RAM if needed (128GB available)
+#
+# Models stored in: ./models/
+# Shared models with other engines: ../models/

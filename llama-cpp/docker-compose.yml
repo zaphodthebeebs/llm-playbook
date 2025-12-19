@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  llama-cpp:
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    container_name: llama-cpp
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    volumes:
+      - ../models/gguf:/models
+    environment:
+      - MODEL=/models/llama-2-70b-chat.Q4_K_M.gguf
+      - HOST=0.0.0.0
+      - PORT=8080
+      - N_GPU_LAYERS=41  # Offload 41 layers to GPU
+      - CTX_SIZE=8192
+    command:
+      - -m
+      - /models/llama-2-70b-chat.Q4_K_M.gguf
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8080"
+      - -ngl
+      - "41"  # GPU layers
+      - -c
+      - "8192"  # Context size
+      - --n-gpu-layers
+      - "41"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+# Download GGUF models from:
+# - https://huggingface.co/TheBloke
+# - Place in ../models/gguf/
+#
+# Recommended models:
+# - TheBloke/Llama-2-70B-Chat-GGUF (Q4_K_M variant)
+# - TheBloke/Mistral-7B-Instruct-v0.2-GGUF
+# - bartowski/Llama-3.1-70B-Instruct-GGUF
+#
+# Adjust -ngl (GPU layers) based on VRAM:
+# - 24GB VRAM: 41 layers for 70B Q4
+# - 12GB VRAM: 20 layers for 70B Q4
+# - 8GB VRAM: Full 13B or 20 layers of 70B

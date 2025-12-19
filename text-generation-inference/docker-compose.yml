@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  text-generation-inference:
+    image: ghcr.io/huggingface/text-generation-inference:latest
+    container_name: tgi
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ~/.cache/huggingface:/data
+      - ../models:/models
+    environment:
+      - HF_HOME=/data
+      - MODEL_ID=meta-llama/Llama-3.1-70B-Instruct
+      - MAX_INPUT_LENGTH=4096
+      - MAX_TOTAL_TOKENS=8192
+      - QUANTIZE=awq
+      # Set your HuggingFace token for gated models
+      # - HUGGING_FACE_HUB_TOKEN=hf_xxxxxxxxxxxxx
+    command:
+      - --model-id
+      - meta-llama/Llama-3.1-70B-Instruct
+      - --max-input-length
+      - "4096"
+      - --max-total-tokens
+      - "8192"
+      - --max-batch-prefill-tokens
+      - "8192"
+      - --quantize
+      - awq
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: '1g'
+
+# Recommended models:
+# - meta-llama/Llama-3.1-70B-Instruct (with --quantize awq)
+# - mistralai/Mistral-7B-Instruct-v0.3
+# - Qwen/Qwen2.5-72B-Instruct
+# - TheBloke/Llama-2-70B-Chat-AWQ

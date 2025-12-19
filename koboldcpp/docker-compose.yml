@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  koboldcpp:
+    image: ghcr.io/lostru<beeblebrox>ins/koboldcpp:latest-cuda
+    container_name: koboldcpp
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../models:/models
+      - ./stories:/stories
+    environment:
+      # Optional: Auto-load model on startup
+      # - MODEL_PATH=/models/llama-2-70b-chat.Q4_K_M.gguf
+      - GPU_LAYERS=41
+      - CONTEXT_SIZE=4096
+      - THREADS=8
+      - PORT=5001
+    command:
+      - --port
+      - "5001"
+      - --gpulayers
+      - "41"
+      - --contextsize
+      - "4096"
+      - --threads
+      - "8"
+      - --usecublas
+      - --highpriority
+      # Uncomment to auto-load a model:
+      # - /models/llama-2-70b-chat.Q4_K_M.gguf
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: '2gb'
+
+# KoboldCpp - Interactive LLM with Web UI
+#
+# Access web interface: http://localhost:5001
+#
+# Features:
+# - Full web UI for story writing and chat
+# - No coding required - all in browser
+# - Memory/lore books for character consistency
+# - Multiple modes: Chat, Story, Adventure
+# - Save/load sessions
+# - Token probability viewer
+#
+# Configuration:
+# - GPU_LAYERS: 41 for RTX 4090 with 70B Q4 models
+#              35 if you get VRAM errors
+#              0 for CPU only (very slow)
+# - CONTEXT_SIZE: 2048, 4096, or 8192
+#                Larger = more memory, slower
+# - THREADS: 8-16 for i9-14900K
+#           Lower if system feels sluggish
+#
+# To auto-load a model on startup:
+# 1. Uncomment MODEL_PATH environment variable
+# 2. Uncomment the model path in command section
+# 3. Set path to your GGUF model file
+#
+# Recommended models for RTX 4090:
+# - Llama 2 70B Q4_K_M (~38GB, ~20 tok/s)
+# - Llama 2 13B Q5_K_M (~9GB, ~50 tok/s)
+# - Llama 3.1 8B Q8_0 (~8.5GB, ~80 tok/s)
+#
+# Download models to: /workspace/llm/models/
+# Save stories to: /workspace/llm/koboldcpp/stories/

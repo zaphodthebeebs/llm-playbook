@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  aphrodite-engine:
+    image: alpindale/aphrodite-engine:latest
+    container_name: aphrodite-engine
+    restart: unless-stopped
+    ports:
+      - "8083:7860"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      - ../models:/models
+    environment:
+      - MODEL_NAME=meta-llama/Llama-3.1-70B-Instruct-AWQ
+      - QUANTIZATION=awq
+      - MAX_MODEL_LEN=8192
+      - GPU_MEMORY_UTILIZATION=0.9
+      - MAX_NUM_SEQS=256
+      - TRUST_REMOTE_CODE=true
+      # For gated models (Llama, etc)
+      # - HF_TOKEN=your_huggingface_token_here
+    command:
+      - --model
+      - meta-llama/Llama-3.1-70B-Instruct-AWQ
+      - --quantization
+      - awq
+      - --max-model-len
+      - "8192"
+      - --gpu-memory-utilization
+      - "0.9"
+      - --max-num-seqs
+      - "256"
+      - --trust-remote-code
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: '4gb'
+
+# Aphrodite Engine - vLLM fork optimized for creative writing
+#
+# Features:
+# - Same speed as vLLM (PagedAttention)
+# - Extended sampling parameters (min_p, typical_p, etc)
+# - Better support for community fine-tunes
+# - Enhanced chat templates
+#
+# Configuration:
+# - Change MODEL_NAME for different models
+# - Set QUANTIZATION: awq, gptq, or remove for FP16
+# - Adjust MAX_MODEL_LEN for longer contexts
+# - GPU_MEMORY_UTILIZATION: 0.8-0.95 (lower if OOM)
+#
+# Recommended models for RTX 4090:
+# - casperhansen/llama-3.1-70b-instruct-awq (70B Q4)
+# - meta-llama/Llama-3.1-8B-Instruct (8B FP16)
+# - Gryphe/MythoMax-L2-13b (13B creative)
+#
+# Access:
+# - OpenAI-compatible API: http://localhost:8083/v1
+# - Health: http://localhost:8083/health
