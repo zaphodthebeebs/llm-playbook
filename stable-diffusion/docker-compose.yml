@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   stable-diffusion:
-    image: ghcr.io/AbdBarho/stable-diffusion-webui:latest-cuda
+    image: ghcr.io/abdbarho/stable-diffusion-webui:latest-cuda
     container_name: stable-diffusion
     restart: unless-stopped
     ports:
