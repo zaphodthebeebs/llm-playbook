@@ -2,34 +2,20 @@ version: '3.8'
 
 services:
   stable-diffusion:
-    image: ghcr.io/abdbarho/stable-diffusion-webui:latest-cuda
+    image: zefie/stable-diffusion-automatic1111:1.10.1
     container_name: stable-diffusion
     restart: unless-stopped
     ports:
-      - "7860:7860"
+      - "0.0.0.0:7860:7860"
     volumes:
-      # Models directory (shared with other LLM engines)
-      - ../models/stable-diffusion:/data/models/Stable-diffusion
-      - ../models/stable-diffusion/lora:/data/models/Lora
-      - ../models/stable-diffusion/vae:/data/models/VAE
-      - ../models/stable-diffusion/embeddings:/data/models/embeddings
-      - ../models/stable-diffusion/controlnet:/data/models/ControlNet
-
-      # Generated images and outputs
-      - ./outputs:/output
-
-      # Extensions and configuration
-      - ./config:/data/config
-      - ./extensions:/data/extensions
+      # Simplified volumes - just persist data
+      - ./data:/data
+      - ./outputs:/outputs
     environment:
       # GPU acceleration
       - NVIDIA_VISIBLE_DEVICES=all
-
-      # CLI arguments for AUTOMATIC1111
-      - CLI_ARGS=--listen --api --xformers --enable-insecure-extension-access --no-half-vae --opt-sdp-attention
-
-      # For very large batches or SDXL, you can add:
-      # - CLI_ARGS=--listen --api --xformers --enable-insecure-extension-access --no-half-vae --opt-sdp-attention --medvram
+      # Listen on all interfaces
+      - WEBUI_LAUNCH_ARGS=--listen --api --xformers
     deploy:
       resources:
         reservations:
@@ -37,19 +23,13 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7860"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    networks:
-      - llm-network
 
-networks:
-  llm-network:
-    external: true
-    name: llm_default  # Adjust if your LLM network has different name
+# Network is optional - removed to allow standalone operation
+# If you want to connect to other LLM services, uncomment below:
+# networks:
+#   llm-network:
+#     external: true
+#     name: llm_default
 
 # Stable Diffusion WebUI - AUTOMATIC1111
 #
