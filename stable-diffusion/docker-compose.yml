@@ -1,21 +1,42 @@
-version: '3.8'
-
 services:
   stable-diffusion:
-    image: zefie/stable-diffusion-automatic1111:1.10.1
+    image: python:3.10
     container_name: stable-diffusion
     restart: unless-stopped
+    # Run as root to allow apt-get install of system dependencies
+    # user: "1000:1000"
     ports:
       - "0.0.0.0:7860:7860"
     volumes:
-      # Simplified volumes - just persist data
-      - ./data:/data
-      - ./outputs:/outputs
+      - ./webui:/webui
+    working_dir: /webui
     environment:
-      # GPU acceleration
-      - NVIDIA_VISIBLE_DEVICES=all
-      # Listen on all interfaces
-      - WEBUI_LAUNCH_ARGS=--listen --api --xformers
+      # Fix for Stability-AI/stablediffusion repo being private (Dec 2025)
+      # Use community fork maintained by w-e-w
+      - STABLE_DIFFUSION_REPO=https://github.com/w-e-w/stablediffusion.git
+      # Prevent git from prompting for credentials
+      - GIT_TERMINAL_PROMPT=0
+      # Fix cache directory permissions
+      - HF_HOME=/webui/.cache/huggingface
+      - MPLCONFIGDIR=/webui/.cache/matplotlib
+      - XDG_CACHE_HOME=/webui/.cache
+    command: >
+      bash -c "
+      apt-get update && apt-get install -y git wget libgl1 libglib2.0-0 gosu &&
+      mkdir -p /webui/.cache/huggingface /webui/.cache/matplotlib &&
+      useradd -u 1000 -m sduser 2>/dev/null || true &&
+      chown -R 1000:1000 /webui &&
+      cd /webui &&
+      gosu sduser bash -c '
+        if [ ! -d /webui/stable-diffusion-webui ]; then
+          git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git stable-diffusion-webui &&
+          cd stable-diffusion-webui &&
+          ./webui.sh --skip-torch-cuda-test --exit
+        fi &&
+        cd /webui/stable-diffusion-webui &&
+        ./webui.sh --listen --api --xformers
+      '
+      "
     deploy:
       resources:
         reservations:
@@ -38,30 +59,29 @@ services:
 #
 # Quick Start:
 # 1. docker-compose up -d
-# 2. Wait for model download (first start: ~5-10 min)
-# 3. Open http://localhost:7860
-# 4. Enter prompt and click Generate!
+# 2. Wait for first-time setup (installs dependencies, ~5-10 min)
+# 3. Wait for model download (downloads SD 1.5, ~4GB)
+# 4. Open http://localhost:7860
+# 5. Enter prompt and click Generate!
+#
+# IMPORTANT NOTES:
+# - First start takes a LONG time (installs PyTorch, clones repos, downloads model)
+# - Subsequent starts are much faster
+# - Uses community fork for Stability-AI repo (original went private Dec 2025)
+# - Runs as root for apt-get, then switches to sduser via gosu for security
 #
 # Features Enabled:
 # - --listen: Accept external connections
 # - --api: Enable REST API
 # - --xformers: Memory efficient attention (faster, less VRAM)
-# - --enable-insecure-extension-access: Allow extension installation
-# - --no-half-vae: Better VAE quality
-# - --opt-sdp-attention: Optimized attention for RTX GPUs
 #
-# Model Storage:
-# - Checkpoints: /workspace/llm/models/stable-diffusion/
-# - LoRA: /workspace/llm/models/stable-diffusion/lora/
-# - VAE: /workspace/llm/models/stable-diffusion/vae/
-# - Embeddings: /workspace/llm/models/stable-diffusion/embeddings/
-# - ControlNet: /workspace/llm/models/stable-diffusion/controlnet/
-#
-# Outputs:
-# - Generated images: /workspace/llm/stable-diffusion/outputs/
+# Model Storage (inside container):
+# - Checkpoints: /webui/stable-diffusion-webui/models/Stable-diffusion/
+# - LoRA: /webui/stable-diffusion-webui/models/Lora/
+# - VAE: /webui/stable-diffusion-webui/models/VAE/
 #
 # Download Models:
-# Place .safetensors files in /workspace/llm/models/stable-diffusion/
+# Place .safetensors files in ./webui/stable-diffusion-webui/models/Stable-diffusion/
 # Recommended sources:
 # - Civitai: https://civitai.com/
 # - HuggingFace: https://huggingface.co/models?other=stable-diffusion
@@ -75,21 +95,15 @@ services:
 # - SD 1.5 @ 512x512: ~2 seconds
 # - SDXL @ 1024x1024: ~6 seconds
 #
-# If Out of VRAM:
-# Add --medvram to CLI_ARGS:
-# - CLI_ARGS=--listen --api --xformers --medvram
+# If Out of VRAM, add --medvram to the command:
+# ./webui.sh --listen --api --xformers --medvram
 #
 # Troubleshooting:
-# - Slow start: First launch downloads default model (~4GB)
-# - GPU not detected: Check nvidia-smi and deploy.resources config
-# - API not working: Ensure --api flag is in CLI_ARGS
-# - Extension install fails: Check --enable-insecure-extension-access flag
+# - "Couldn't clone Stable Diffusion": Fixed via STABLE_DIFFUSION_REPO env var
+# - "libGL.so.1 not found": Fixed via apt-get install libgl1
+# - "Permission denied": Container handles this via gosu
+# - Slow start: Normal for first run, installs ~2GB of dependencies
 #
 # Integration:
 # - Use with n8n for workflow automation
-# - Connect to LocalAI for unified API
-# - Call from LLM workflows for image generation
-#
-# Default model on first start:
-# - Downloads SD 1.5 from HuggingFace automatically
-# - You can replace with any .safetensors model after
+# - API endpoint: http://localhost:7860/sdapi/v1/txt2img

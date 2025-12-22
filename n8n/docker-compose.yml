@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   n8n-postgres:
     image: postgres:15
@@ -22,7 +20,7 @@ services:
       - n8n-network
 
   n8n:
-    image: n8nio/n8n:latest
+    image: n8nio/n8n:1.70.3
     container_name: n8n
     restart: unless-stopped
     ports:
@@ -68,11 +66,9 @@ services:
       # - EXECUTIONS_DATA_MAX_AGE=168  # 7 days in hours
 
       # Security
-      - N8N_SECURE_COOKIE=false
-      # Enable for production:
-      # - N8N_BASIC_AUTH_ACTIVE=true
-      # - N8N_BASIC_AUTH_USER=admin
-      # - N8N_BASIC_AUTH_PASSWORD=${N8N_ADMIN_PASSWORD:-changeme}
+      # Note: Basic auth is deprecated in newer n8n versions
+      # n8n now has built-in user management - just create an account on first run
+      - N8N_SECURE_COOKIE=true
 
       # Payload size (increase for large data)
       - N8N_PAYLOAD_SIZE_MAX=16
@@ -91,52 +87,47 @@ services:
         condition: service_healthy
     networks:
       - n8n-network
-      - llm-network  # Connect to LLM services
 
 networks:
   n8n-network:
     driver: bridge
-  llm-network:
-    external: true
-    name: llm_default  # Adjust if your LLM network has different name
 
 # n8n - Workflow Automation for LLMs
 #
 # Access web UI: http://localhost:5678
 #
 # Quick Start:
-# 1. docker-compose up -d
-# 2. Open http://localhost:5678
-# 3. Create first user (becomes admin)
-# 4. Start building workflows!
+# 1. Create .env file with your settings (see below)
+# 2. Fix permissions: mkdir -p ./data/n8n && sudo chown -R 1000:1000 ./data/n8n
+# 3. docker-compose up -d
+# 4. Open http://localhost:5678
+# 5. Create first user (becomes admin)
+# 6. Start building workflows!
 #
-# Connect to LLMs:
+# IMPORTANT: Permission Fix Required
+# n8n runs as UID 1000 (node user). Before first run:
+#   mkdir -p ./data/n8n
+#   sudo chown -R 1000:1000 ./data/n8n
+#
+# Example .env file (create this file):
+# N8N_DB_PASSWORD=your_secure_database_password
+# WEBHOOK_URL=https://your-domain.com
+#
+# Security Notes:
+# - n8n has built-in user management (create account on first run)
+# - Basic auth is deprecated in newer versions
+# - Use a reverse proxy (Caddy/nginx) with HTTPS for production
+# - Set N8N_SECURE_COOKIE=true when behind HTTPS
+#
+# Connect to LLMs (if on same Docker network):
 # - Ollama: http://ollama:11434
 # - vLLM: http://vllm:8000/v1
 # - LocalAI: http://localai:8082/v1
-# - KoboldCpp: http://koboldcpp:5001
 # - Stable Diffusion: http://stable-diffusion:7860
-#
-# Security (Production):
-# - Set N8N_DB_PASSWORD environment variable
-# - Enable N8N_BASIC_AUTH_ACTIVE
-# - Set N8N_BASIC_AUTH_PASSWORD
-# - Use HTTPS with reverse proxy
-# - Set proper WEBHOOK_URL
-#
-# Environment Variables:
-# - N8N_DB_PASSWORD: Database password (default: changeme123)
-# - WEBHOOK_URL: External URL for webhooks (default: http://localhost:5678)
-# - N8N_ADMIN_PASSWORD: Admin password if basic auth enabled
-#
-# Example .env file:
-# N8N_DB_PASSWORD=mysecretpassword
-# WEBHOOK_URL=https://n8n.yourdomain.com
-# N8N_ADMIN_PASSWORD=adminpassword
 #
 # Data stored in:
 # - ./data/postgres/ - Database
-# - ./data/n8n/ - n8n data
+# - ./data/n8n/ - n8n config and data
 # - ./workflows/ - Workflow exports
 # - ./backups/ - Manual backups
 #

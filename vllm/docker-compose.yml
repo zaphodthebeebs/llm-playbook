@@ -1,22 +1,21 @@
-version: '3.8'
-
 services:
   vllm:
     image: vllm/vllm-openai:latest
     container_name: vllm
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8090:8000"
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
       - ../models:/models
+    env_file:
+      - .env
     environment:
       - HF_HOME=/root/.cache/huggingface
-      # Set your HuggingFace token for gated models
-      # - HF_TOKEN=hf_xxxxxxxxxxxxx
+      - HF_TOKEN=${HF_TOKEN:-}
     command:
       - --model
-      - meta-llama/Llama-3.1-70B-Instruct
+      - Qwen/Qwen2.5-7B-Instruct
       - --dtype
       - auto
       - --max-model-len
@@ -63,25 +62,43 @@ networks:
 
 # vLLM - High-Performance LLM Inference Server
 #
-# API: http://localhost:8000/v1 (OpenAI-compatible)
+# API: http://localhost:8090/v1 (OpenAI-compatible)
 # Web UI: http://localhost:3001 (Open WebUI - ChatGPT-like interface)
 #
+# REQUIREMENTS:
+# - NVIDIA GPU with CUDA 12.9+ support (driver 575+)
+# - Check with: nvidia-smi (CUDA Version shown top right)
+#
+# IMPORTANT: Unlike Ollama, vLLM does NOT support downloading models from the UI.
+# Models must be specified in the --model command above and are downloaded
+# automatically when the container starts. To change models, edit docker-compose.yml
+# and restart the container.
+#
 # Quick Start:
-# 1. Edit model name in command section above
-# 2. docker-compose up -d
-# 3. Wait for model download (first start)
-# 4. Access Web UI at http://localhost:3001
-# 5. Or use API with base_url="http://localhost:8000/v1"
+# 1. Create .env file (optional, for gated models like Llama)
+# 2. Edit model name in command section above if desired
+# 3. docker-compose up -d
+# 4. Wait for model download (first start can take several minutes)
+# 5. Access Web UI at http://localhost:3001
+# 6. Select the model from the dropdown (ignore "Manage Models" - that's for Ollama)
+# 7. Or use API with base_url="http://localhost:8090/v1"
 #
-# To use a different model, change the --model parameter:
-# Recommended models:
-# - meta-llama/Llama-3.1-70B-Instruct (70B, needs AWQ/GPTQ)
-# - meta-llama/Llama-3.1-13B-Instruct (13B, full FP16)
+# Example .env file (for gated models like Llama):
+# HF_TOKEN=hf_your_huggingface_token_here
+#
+# Get your token from: https://huggingface.co/settings/tokens
+# Then accept model license at the model's HuggingFace page
+#
+# Recommended models (ungated - no HF token needed):
+# - Qwen/Qwen2.5-7B-Instruct (7B, fast, good quality)
+# - Qwen/Qwen2.5-14B-Instruct (14B, better quality)
 # - mistralai/Mistral-7B-Instruct-v0.3 (7B, fast)
-# - Qwen/Qwen2.5-72B-Instruct (72B, excellent)
-# - TheBloke/Llama-2-70B-Chat-AWQ (70B quantized, fits in 24GB)
 #
-# For AWQ/GPTQ quantized models (recommended for 70B):
+# Gated models (require HF token + license acceptance):
+# - meta-llama/Llama-3.1-8B-Instruct
+# - meta-llama/Llama-3.1-70B-Instruct (needs quantization for 24GB)
+#
+# For AWQ/GPTQ quantized models (for large models on limited VRAM):
 # - Add: --quantization awq
 # - Or: --quantization gptq
 #
@@ -89,7 +106,3 @@ networks:
 # - --gpu-memory-utilization: 0.8-0.95 (default 0.9)
 # - --max-model-len: Reduce if OOM (e.g. 4096 instead of 8192)
 # - --tensor-parallel-size: For multi-GPU (e.g. 2 for 2xGPUs)
-#
-# HuggingFace token (for gated models like Llama):
-# - Uncomment HF_TOKEN in environment
-# - Get token from https://huggingface.co/settings/tokens
