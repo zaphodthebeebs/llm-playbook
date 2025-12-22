@@ -1,33 +1,26 @@
-version: '3.8'
-
 services:
   llama-cpp:
-    image: ghcr.io/ggerganov/llama.cpp:server-cuda
+    # NVIDIA GPU version - check for newer tags at:
+    # https://github.com/ggerganov/llama.cpp/pkgs/container/llama.cpp
+    image: ghcr.io/ggerganov/llama.cpp:server-cuda-b4719
     container_name: llama-cpp
     restart: unless-stopped
     ports:
-      - "8081:8080"
+      - "8085:8080"
     volumes:
-      - ../models/gguf:/models
-    environment:
-      - MODEL=/models/llama-2-70b-chat.Q4_K_M.gguf
-      - HOST=0.0.0.0
-      - PORT=8080
-      - N_GPU_LAYERS=41  # Offload 41 layers to GPU
-      - CTX_SIZE=8192
+      - ./models:/models
     command:
       - -m
-      - /models/llama-2-70b-chat.Q4_K_M.gguf
+      # CHANGE THIS to your model filename:
+      - /models/your-model.gguf
       - --host
-      - 0.0.0.0
+      - "0.0.0.0"
       - --port
       - "8080"
       - -ngl
-      - "41"  # GPU layers
+      - "0"  # GPU layers (0 = CPU only, 99 = all GPU, reduce if OOM)
       - -c
-      - "8192"  # Context size
-      - --n-gpu-layers
-      - "41"
+      - "4096"  # Context size
     deploy:
       resources:
         reservations:
@@ -36,16 +29,57 @@ services:
               count: 1
               capabilities: [gpu]
 
+  # Optional: Open WebUI for chat interface
+  # Uncomment to enable
+  # open-webui:
+  #   image: ghcr.io/open-webui/open-webui:latest
+  #   container_name: llama-cpp-webui
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3003:8080"
+  #   volumes:
+  #     - ./open-webui:/app/backend/data
+  #   environment:
+  #     - OPENAI_API_BASE_URL=http://llama-cpp:8080/v1
+  #     - OPENAI_API_KEY=dummy
+  #     - ENABLE_OLLAMA_API=false
+  #   depends_on:
+  #     - llama-cpp
+
+# llama.cpp - Lightweight LLM Inference (CPU & GPU)
+#
+# API: http://localhost:8085 (OpenAI-compatible at /v1)
+#
+# Quick Start:
+# 1. Download a GGUF model (see below)
+# 2. Place it in ./models/
+# 3. Edit the -m command above with your model filename
+# 4. docker-compose up -d
+# 5. Test: curl http://localhost:8085/v1/models
+#
 # Download GGUF models from:
-# - https://huggingface.co/TheBloke
-# - Place in ../models/gguf/
+# - https://huggingface.co/bartowski (high quality quants)
+# - https://huggingface.co/TheBloke (large collection)
 #
-# Recommended models:
-# - TheBloke/Llama-2-70B-Chat-GGUF (Q4_K_M variant)
-# - TheBloke/Mistral-7B-Instruct-v0.2-GGUF
-# - bartowski/Llama-3.1-70B-Instruct-GGUF
+# Example download:
+#   cd models
+#   wget https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf
 #
-# Adjust -ngl (GPU layers) based on VRAM:
-# - 24GB VRAM: 41 layers for 70B Q4
-# - 12GB VRAM: 20 layers for 70B Q4
-# - 8GB VRAM: Full 13B or 20 layers of 70B
+# Recommended models by VRAM:
+# - 4GB VRAM:  Llama-3.2-1B-Instruct-Q8_0.gguf
+# - 8GB VRAM:  Llama-3.2-3B-Instruct-Q4_K_M.gguf, Mistral-7B-Instruct-Q4_K_M.gguf
+# - 16GB VRAM: Llama-3.1-8B-Instruct-Q8_0.gguf
+# - 24GB VRAM: Llama-3.1-70B-Instruct-Q4_K_M.gguf
+#
+# Adjust -ngl (GPU layers) if out of memory:
+# - 99 = offload all layers to GPU (fastest)
+# - 0 = CPU only (slowest, works without GPU)
+# - 20-40 = partial offload (balance speed/memory)
+#
+# For CPU-only (no NVIDIA GPU):
+# 1. Change image to: ghcr.io/ggerganov/llama.cpp:server
+# 2. Remove the entire deploy: section
+#
+# Context size (-c):
+# - Higher = more memory, longer conversations
+# - 4096 is good default, reduce to 2048 if OOM
