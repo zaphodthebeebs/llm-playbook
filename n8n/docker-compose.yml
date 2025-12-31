@@ -20,7 +20,7 @@ services:
       - n8n-network
 
   n8n:
-    image: n8nio/n8n:1.70.3
+    image: n8nio/n8n:1.120.0
     container_name: n8n
     restart: unless-stopped
     ports:
@@ -29,6 +29,10 @@ services:
       - ./data/n8n:/home/node/.n8n
       - ./workflows:/home/node/workflows
       - ./backups:/home/node/backups
+      - /home/zaphod-beeblebox/src/n8n-workflows/social-media-system:/data/social-media-system
+      - /tmp:/tmp
+      - /home/zaphod-beeblebox/src/n8n-workflows/mining-ai:/data/mining-ai
+
     environment:
       # Database connection
       - DB_TYPE=postgresdb
@@ -81,6 +85,18 @@ services:
       - N8N_VERSION_NOTIFICATIONS_ENABLED=true
       - N8N_DIAGNOSTICS_ENABLED=false
       - N8N_HIRING_BANNER_ENABLED=false
+      # Custom environment variables for workflows
+      - BLOG_API_KEY=${BLOG_API_KEY}
+
+      - PYTHONPATH=/data/social-media-system
+      - DB_PATH=/tmp/social_posts.db
+      - TWITTER_API_KEY=${TWITTER_API_KEY}
+      - TWITTER_API_SECRET=${TWITTER_API_SECRET}
+      - TWITTER_ACCESS_TOKEN=${TWITTER_ACCESS_TOKEN}
+      - TWITTER_ACCESS_SECRET=${TWITTER_ACCESS_SECRET}
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
     depends_on:
       n8n-postgres:
