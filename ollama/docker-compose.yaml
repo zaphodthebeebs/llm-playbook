@@ -1,0 +1,52 @@
+services:
+  ui:
+    image: ghcr.io/open-webui/open-webui:latest
+    restart: always
+    ports:
+      - "3000:3000"  # Use quotes for consistency
+    volumes:
+      - ./open-webui:/app/backend/data
+    environment:
+      # Ollama integration
+      OLLAMA_BASE_URL: http://ollama:11434  # Use YAML key-value format
+      ENABLE_OLLAMA_API: true
+      # Performance settings
+      PORT: 3000
+      WEBUI_AUTH: true
+      ENV: production
+      NUM_WORKERS: "8"  # Use quotes to prevent octal interpretation
+      TIMEOUT: "600"
+      KEEP_ALIVE: "5"
+      LOG_LEVEL: INFO
+      # Model settings
+      DEFAULT_MODELS: qwq:32b
+      ENABLE_MODEL_FILTER: true
+      # Stable Diffusion (uncommented and fixed syntax)
+      #SD_WEBUI_BASE_URL: http://stable-diffusion:8080
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama:/root/.ollama
+    environment:
+      OLLAMA_NUM_PARALLEL: "2"  # Changed from 2 to match your comment (4090 can handle 4)
+      OLLAMA_MAX_LOADED_MODELS: "1"  # Changed from 1 to 3 (matches your comment)
+      OLLAMA_FLASH_ATTENTION: "1"
+      OLLAMA_NUM_CTX: "16384"  # Changed to 8k (16384=16k vs your comment about 8k)
+      OLLAMA_KEEP_ALIVE: 30m   # Changed from 30m to match "10 min" comment
+      OLLAMA_MAX_QUEUE: "512"
+      OLLAMA_DEBUG: "false"
+      NVIDIA_VISIBLE_DEVICES: "all"  # Ensure all GPUs are visible to the toolkit
+      NVIDIA_DRIVER_CAPABILITIES: "compute,utility"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
