@@ -20,7 +20,7 @@ services:
       - n8n-network
 
   n8n:
-    image: n8nio/n8n:1.120.0
+    image: n8nio/n8n:latest
     container_name: n8n
     restart: unless-stopped
     ports:
@@ -87,6 +87,7 @@ services:
       - N8N_HIRING_BANNER_ENABLED=false
       # Custom environment variables for workflows
       - BLOG_API_KEY=${BLOG_API_KEY}
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
 
       - PYTHONPATH=/data/social-media-system
       - DB_PATH=/tmp/social_posts.db
